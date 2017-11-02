@@ -590,6 +590,11 @@ class WitAiSTT(AbstractSTTEngine):
         r = requests.post('https://api.wit.ai/speech?v=20150101',
                           data=data,
                           headers=self.headers)
+
+        ## Let's see the URL we're passing
+        # print("This is the URL: " + r.url)
+        # print("Here are the headers: " + self.headers)
+
         try:
             r.raise_for_status()
             text = r.json()['_text']
