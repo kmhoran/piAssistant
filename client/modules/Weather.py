@@ -34,6 +34,9 @@ def replaceAcronyms(text):
     text = re.sub(r'(\b\d+)F(\b)', '\g<1> Fahrenheit\g<2>', text)
     text = re.sub(r'(\b)mph(\b)', '\g<1>miles per hour\g<2>', text)
     text = re.sub(r'(\b)in\.', '\g<1>inches', text)
+    text = re.sub(r'(\b)&deg;(\b)', '\g<1> degrees \g<2>', text)
+    text = re.sub(r'(\b)hPa(\b)', '\g<1> hectopascals \g<2>', text)
+
 
     return text
 
@@ -134,7 +137,7 @@ def handle(text, mic, profile):
 
     # Added
     # create log output
-    print('Weekday' +  weekday)
+    print('Weekday: ' +  weekday)
     print("keyword: " + date_keyword)
     log = open('log.txt', 'w')
     log.truncate()
@@ -144,13 +147,14 @@ def handle(text, mic, profile):
     for entry in forecast:
         #print(str(entry))
         print("elemement " + str(count))
-        log.write('%d : %s \n' % (count, entry))
+        log.write('%d : %s \n\n' % (count, entry))
 
         count += 1
         try:
             date_desc = entry['title'].split()[0].strip().lower()
             # Added
             print(date_desc)
+
             if date_desc == 'forecast':
                 # For global forecasts
                 date_desc = entry['title'].split()[2].strip().lower()
@@ -161,7 +165,7 @@ def handle(text, mic, profile):
             else:
                 # US forecasts
                 weather_desc = entry['summary'].split('-')[1]
-
+            print(weekday + ' is equal to ' + date_desc + " :  " + str(weekday == date_desc))
             if weekday == date_desc:
                 output = date_keyword + \
                     ", the weather will be " + weather_desc + "."
