@@ -107,7 +107,7 @@ def handle(text, mic, profile):
     if 'wmo_id' in profile:
         forecast = get_forecast_by_wmo_id(str(profile['wmo_id']))
     elif 'location' in profile:
-        forecast = get_forecast_by_name(str(profile['location']))
+	forecast = get_forecast_by_name(str(profile['location']))
 
     if not forecast:
         mic.say("I'm sorry, I can't seem to access that information. Please " +
@@ -131,10 +131,18 @@ def handle(text, mic, profile):
         date_keyword = "On " + weekday
 
     output = None
-
+    # Added
+    count = 0
+    # print("test 1")
+    # print("forecast: " + str(type(forecast)))
     for entry in forecast:
+        #print(str(entry))
+        print("elemement " + str(count))
+        count += 1
         try:
             date_desc = entry['title'].split()[0].strip().lower()
+            # Added
+            print(date_desc)
             if date_desc == 'forecast':
                 # For global forecasts
                 date_desc = entry['title'].split()[2].strip().lower()
@@ -151,6 +159,7 @@ def handle(text, mic, profile):
                     ", the weather will be " + weather_desc + "."
                 break
         except:
+            print("~failed")
             continue
 
     if output:
