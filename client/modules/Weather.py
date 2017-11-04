@@ -134,6 +134,8 @@ def handle(text, mic, profile):
 
     # Added
     # create log output
+    print('Weekday' +  weekday)
+    print("keyword: " + date_keyword)
     log = open('log.txt', 'w')
     log.truncate()
     count = 0
@@ -142,7 +144,7 @@ def handle(text, mic, profile):
     for entry in forecast:
         #print(str(entry))
         print("elemement " + str(count))
-        log.write('%d %s \n' % (count, entry))
+        log.write('%d : %s \n' % (count, entry))
 
         count += 1
         try:
