@@ -98,25 +98,20 @@ def get_date_object_from_text(text, profile):
     # str => {'weekday': str, 'keyword': str}
     tz = getTimezone(profile)
     service = DateService(tz=tz)
-    dateWords = ['today', 'tonight', 'tomorrow']
+    date_words = ['today', 'tonight', 'tomorrow']
 
-    print("looking for date object!")
     date = service.extractDay(text)
     weekday = None
     date_keyword = None
-    print("this is the date: " + str(date))
+
+    for i in range(len(date_words)):
+        index = text.find(date_words[i].upper())
+        if index >= 0:
+            weekday = date_words[i]
+            date_keyword = date_words[i].capitalize()
+            break
 
     if not date:
-        print("no explicit date in request")
-        for i in range(len(dateWords)):
-            print("searching for " + dateWords[i])
-            index = text.find(dateWords[i])
-            if index >= 0:
-                print("Found " + dateWords[i])
-                weekday = dateWords[i]
-                date_keyword = date_keyword[i]
-                break
-
         date = datetime.datetime.now(tz=tz)
         if not weekday:
             weekday = service.__daysOfWeek__[date.weekday()]
@@ -129,6 +124,10 @@ def get_date_object_from_text(text, profile):
         date_keyword = "Tomorrow"
     else:
         date_keyword = "On " + weekday
+    print("{'weekday': %s, 'date_keyword: %s'}" % (weekday, date_keyword))
+    date_object = {'weekday': weekday, 'date_keyword': date_keyword}
+    return date_object
+
 
 
 
@@ -156,30 +155,30 @@ def handle(text, mic, profile):
         return
 
     # Find Date
-    dateObj = get_date_object_from_text(text, profile)
+    date_object = get_date_object_from_text(text, profile)
 
-    tz = getTimezone(profile)
+    #tz = getTimezone(profile)
 
-    service = DateService(tz=tz)
-    date = service.extractDay(text)
-    if not date:
-        date = datetime.datetime.now(tz=tz)
-    weekday = service.__daysOfWeek__[date.weekday()]
+    #service = DateService(tz=tz)
+    #date = service.extractDay(text)
+    #if not date:
+    #    date = datetime.datetime.now(tz=tz)
+    #weekday = service.__daysOfWeek__[date.weekday()]
 
-    if date.weekday() == datetime.datetime.now(tz=tz).weekday():
-        date_keyword = "Today"
-    elif date.weekday() == (
-            datetime.datetime.now(tz=tz).weekday() + 1) % 7:
-        date_keyword = "Tomorrow"
-    else:
-        date_keyword = "On " + weekday
+    #if date.weekday() == datetime.datetime.now(tz=tz).weekday():
+    #    date_keyword = "Today"
+    #elif date.weekday() == (
+    #        datetime.datetime.now(tz=tz).weekday() + 1) % 7:
+    #    date_keyword = "Tomorrow"
+    #else:
+    #    date_keyword = "On " + weekday
 
     output = None
 
     # Added
     # create log output
-    print('Weekday: ' +  weekday)
-    print("keyword: " + date_keyword)
+    print('Weekday: ' +  date_object['weekday'])
+    print("keyword: " + date_object['date_keyword'])
     log = open('log.txt', 'w')
     log.truncate()
     count = 0
@@ -206,9 +205,9 @@ def handle(text, mic, profile):
             else:
                 # US forecasts
                 weather_desc = entry['summary'].split('-')[1]
-            print(weekday + ' is equal to ' + date_desc + " :  " + str(weekday == date_desc))
-            if weekday == date_desc:
-                output = date_keyword + \
+            print(date_object['weekday'] + ' is equal to ' + date_desc + " :  " + str(date_object['weekday'] == date_desc))
+            if date_object['weekday'] == date_desc:
+                output = date_object['date_keyword'] + \
                     ", the weather will be " + weather_desc + "."
                 break
         except:
