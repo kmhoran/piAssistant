@@ -98,37 +98,70 @@ def get_date_object_from_text(text, profile):
     # str => {'weekday': str, 'keyword': str}
     tz = getTimezone(profile)
     service = DateService(tz=tz)
-    date_words = ['today', 'tonight', 'tomorrow']
+    #date_words = ['today', 'tonight']
 
     date = service.extractDay(text)
     weekday = None
     date_keyword = None
 
-    for i in range(len(date_words)):
-        index = text.find(date_words[i].upper())
-        if index >= 0:
-            weekday = date_words[i]
-            date_keyword = date_words[i].capitalize()
-            break
+    #for i in range(len(date_words)):
+    #   index = text.find(date_words[i].upper())
+    #    if index >= 0:
+    #        # weekday = date_words[i]
+    #        weekday = 'today'
+    #        date_keyword = date_words[i].capitalize()
+    #        break
 
     if not date:
         date = datetime.datetime.now(tz=tz)
-        if not weekday:
-            weekday = service.__daysOfWeek__[date.weekday()]
 
     if date.weekday() == datetime.datetime.now(tz=tz).weekday():
-        if not date_keyword:
-            date_keyword = "Today"
-    elif date.weekday() == (
-            datetime.datetime.now(tz=tz).weekday() + 1) % 7:
+        weekday = "today"
+        date_keyword = "Today"
+    elif date.weekday() == (datetime.datetime.now(tz=tz).weekday() + 1) % 7:
+        weekday = service.__daysOfWeek__[date.weekday()]
         date_keyword = "Tomorrow"
     else:
+        weekday = service.__daysOfWeek__[date.weekday()]
         date_keyword = "On " + weekday
     print("{'weekday': %s, 'date_keyword: %s'}" % (weekday, date_keyword))
     date_object = {'weekday': weekday, 'date_keyword': date_keyword}
     return date_object
 
 
+def get_forecst_string(forecast, date_object):
+    output = None
+    date_words = ['today', 'tonight']
+    for entry in forecast:
+        try:
+            date_desc = entry['title'].split()[0].strip().lower()
+            # Added
+            print(date_desc)
+
+            if date_desc == 'forecast':
+                # For global forecasts
+                date_desc = entry['title'].split()[2].strip().lower()
+                weather_desc = entry['summary']
+            elif date_desc == 'current':
+                # For first item of global forecasts
+                continue
+            else:
+                # US forecasts
+                weather_desc = entry['summary'].split('-')[1]
+            #print(date_object['weekday'] + ' is equal to ' + date_desc + " :  " + str(date_object['weekday'] == date_desc))
+
+            if date_object['weekday'] == 'today' and date_desc in date_words:
+                output = date_desc + \
+                    ", the weather is " + weather_desc + "."
+                break
+
+            if date_object['weekday'] == date_desc:
+                output = date_object['date_keyword'] + \
+                    ", the weather will be " + weather_desc + "."
+                break
+        except:
+            continue
+    return output
 
 
 def handle(text, mic, profile):
@@ -173,47 +206,40 @@ def handle(text, mic, profile):
     #else:
     #    date_keyword = "On " + weekday
 
-    output = None
+    #output = None
 
     # Added
     # create log output
     print('Weekday: ' +  date_object['weekday'])
     print("keyword: " + date_object['date_keyword'])
-    log = open('log.txt', 'w')
-    log.truncate()
     count = 0
     # print("test 1")
     # print("forecast: " + str(type(forecast)))
-    for entry in forecast:
-        #print(str(entry))
-        print("elemement " + str(count))
-        log.write('%d : %s \n\n' % (count, entry))
+    #for entry in forecast:
+    #    try:
+    #        date_desc = entry['title'].split()[0].strip().lower()
+    #        # Added
+    #        print(date_desc)
 
-        count += 1
-        try:
-            date_desc = entry['title'].split()[0].strip().lower()
-            # Added
-            print(date_desc)
-
-            if date_desc == 'forecast':
-                # For global forecasts
-                date_desc = entry['title'].split()[2].strip().lower()
-                weather_desc = entry['summary']
-            elif date_desc == 'current':
+    #        if date_desc == 'forecast':
+    #            # For global forecasts
+    #            date_desc = entry['title'].split()[2].strip().lower()
+    #            weather_desc = entry['summary']
+    #        elif date_desc == 'current':
                 # For first item of global forecasts
-                continue
-            else:
+    #            continue
+    #        else:
                 # US forecasts
-                weather_desc = entry['summary'].split('-')[1]
-            print(date_object['weekday'] + ' is equal to ' + date_desc + " :  " + str(date_object['weekday'] == date_desc))
-            if date_object['weekday'] == date_desc:
-                output = date_object['date_keyword'] + \
-                    ", the weather will be " + weather_desc + "."
-                break
-        except:
-            print("~failed")
-            continue
-    log.close()
+    #            weather_desc = entry['summary'].split('-')[1]
+    #        print(date_object['weekday'] + ' is equal to ' + date_desc + " :  " + str(date_object['weekday'] == date_desc))
+    #        if date_object['weekday'] == date_desc:
+    #            output = date_object['date_keyword'] + \
+    #                ", the weather will be " + weather_desc + "."
+    #            break
+    #    except:
+    #        continue
+
+    output = get_forecst_string(forecast, date_object)
 
     if output:
         output = replaceAcronyms(output)
