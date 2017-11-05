@@ -94,6 +94,23 @@ def get_forecast_by_wmo_id(wmo_id):
                             % wmo_id)['entries']
 
 
+def get_date_object_from_text(text, profile):
+    # str => {'weekday': str, 'keyword': str}
+    tz = getTimezone(profile)
+    service = DateService(tz=tz)
+    dateWords = ['today', 'tonight', 'tomorrow']
+
+
+    date = service.extractDay(text)
+    if not date:
+        for i in range(len(dateWords)):
+            index = text.find(dateWords[i])
+            if index >= 0:
+                print("Found " + dateWords[i])
+                date = dateWords[i]
+                break
+
+
 def handle(text, mic, profile):
     """
     Responds to user-input, typically speech text, with a summary of
@@ -110,7 +127,7 @@ def handle(text, mic, profile):
     if 'wmo_id' in profile:
         forecast = get_forecast_by_wmo_id(str(profile['wmo_id']))
     elif 'location' in profile:
-	forecast = get_forecast_by_name(str(profile['location']))
+        forecast = get_forecast_by_name(str(profile['location']))
 
     if not forecast:
         mic.say("I'm sorry, I can't seem to access that information. Please " +
