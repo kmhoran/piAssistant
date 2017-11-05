@@ -102,7 +102,9 @@ def get_date_object_from_text(text, profile):
 
     print("looking for date object!")
     date = service.extractDay(text)
-    print("this is the date: " + date)
+    weekday = None
+    date_keyword = None
+    print("this is the date: " + str(date))
 
     if not date:
         print("no explicit date in request")
@@ -111,8 +113,23 @@ def get_date_object_from_text(text, profile):
             index = text.find(dateWords[i])
             if index >= 0:
                 print("Found " + dateWords[i])
-                date = dateWords[i]
+                weekday = dateWords[i]
+                date_keyword = date_keyword[i]
                 break
+
+        date = datetime.datetime.now(tz=tz)
+        if not weekday:
+            weekday = service.__daysOfWeek__[date.weekday()]
+
+    if date.weekday() == datetime.datetime.now(tz=tz).weekday():
+        if not date_keyword:
+            date_keyword = "Today"
+    elif date.weekday() == (
+            datetime.datetime.now(tz=tz).weekday() + 1) % 7:
+        date_keyword = "Tomorrow"
+    else:
+        date_keyword = "On " + weekday
+
 
 
 def handle(text, mic, profile):
