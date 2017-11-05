@@ -100,10 +100,14 @@ def get_date_object_from_text(text, profile):
     service = DateService(tz=tz)
     dateWords = ['today', 'tonight', 'tomorrow']
 
-
+    print("looking for date object!")
     date = service.extractDay(text)
+    print("this is the date: " + date)
+
     if not date:
+        print("no explicit date in request")
         for i in range(len(dateWords)):
+            print("searching for " + dateWords[i])
             index = text.find(dateWords[i])
             if index >= 0:
                 print("Found " + dateWords[i])
@@ -133,6 +137,9 @@ def handle(text, mic, profile):
         mic.say("I'm sorry, I can't seem to access that information. Please " +
                 "make sure that you've set your location on the dashboard.")
         return
+
+    # Find Date
+    dateObj = get_date_object_from_text(text, profile)
 
     tz = getTimezone(profile)
 
