@@ -131,13 +131,19 @@ def handle(text, mic, profile):
         date_keyword = "On " + weekday
 
     output = None
+
     # Added
+    # create log output
+    log = open('log.txt', 'w')
+    log.truncate()
     count = 0
     # print("test 1")
     # print("forecast: " + str(type(forecast)))
     for entry in forecast:
         #print(str(entry))
         print("elemement " + str(count))
+        log.write('%d %s \n' % (count, entry))
+
         count += 1
         try:
             date_desc = entry['title'].split()[0].strip().lower()
@@ -161,6 +167,7 @@ def handle(text, mic, profile):
         except:
             print("~failed")
             continue
+    log.close()
 
     if output:
         output = replaceAcronyms(output)
