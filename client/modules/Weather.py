@@ -131,12 +131,10 @@ def get_date_object_from_text(text, profile):
 
 def get_forecst_string(forecast, date_object):
     output = None
-    date_words = ['today', 'tonight']
+    today_words = ['today', 'tonight']
     for entry in forecast:
         try:
             date_desc = entry['title'].split()[0].strip().lower()
-            # Added
-            print(date_desc)
 
             if date_desc == 'forecast':
                 # For global forecasts
@@ -148,9 +146,8 @@ def get_forecst_string(forecast, date_object):
             else:
                 # US forecasts
                 weather_desc = entry['summary'].split('-')[1]
-            #print(date_object['weekday'] + ' is equal to ' + date_desc + " :  " + str(date_object['weekday'] == date_desc))
 
-            if date_object['weekday'] == 'today' and date_desc in date_words:
+            if date_object['weekday'] == 'today' and date_desc in today_words:
                 output = date_desc + \
                     ", the weather is " + weather_desc + "."
                 break
