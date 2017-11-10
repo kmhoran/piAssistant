@@ -47,10 +47,9 @@ class Conversation(object):
             if input:
                 self.brain.query(input)
             else:
-                messages = ["You know, I can't help you if you mumble like that?"
-                            ,"Does not compute, how about we try this again?"]
+                messages = ["You know, I can't help you if you mumble like that."
+                            ,"Does not compute, how about we try this again."]
 
                 message = random.choice(messages)
 
                 self.mic.say(message)
-                #self.mic.say("?")
