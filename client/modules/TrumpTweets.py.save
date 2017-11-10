@@ -14,9 +14,8 @@ def replace_special_characters(text):
     """
     Replace common twitter symbols for more natural tweet reading
     """
-    text = re.sub(r'@FLOTUS', 'First Lady', text)
     text = re.sub(r'#', 'hash tag ', text)
-    text = re.sub(r'@+', 'AT ',text)
+    text = re.sub(r'@+', 'at ',text)
 
     return text
 
@@ -74,7 +73,10 @@ def handle(text, mic, profile):
     statuses = api.GetUserTimeline(screen_name='realDonaldTrump')
     latest = statuses[0]
     print(latest)
-    output = latest.full_text
+    #statusId = latest.id_str
+    #status = api.GetStatus(status_id=statusId)
+    
+print(status)
     output = replace_special_characters(output)
     print(output)
     mic.say(output)
@@ -83,4 +85,4 @@ def isValid(text):
     """
     Returns true if Jasper hears "Trump Tweets"
     """
-    return bool(re.search(r'\btrump|tweet|tweets\twitter\b', text, re.IGNORECASE))
+    return bool(re.search(r'\btrump\b', text, re.IGNORECASE))
