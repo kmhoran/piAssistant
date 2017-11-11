@@ -129,13 +129,19 @@ def get_date_object_from_text(text, profile):
     return date_object
 
 
-def get_forecst_string(forecast, date_object):
-    output = None
+def get_forecst(forecast, date_object):
+    output = {'requested':None, 'alternatives': []}
+
     today_words = ['today', 'tonight']
     for entry in forecast:
         try:
             date_desc = entry['title'].split()[0].strip().lower()
 
+            # Keep track of possible alternatives
+            if not date_desc in output['alternatives']:
+                output['alternatives'].append(date_desc)
+
+            # Try multiple options to find the weather description
             if date_desc == 'forecast':
                 # For global forecasts
                 date_desc = entry['title'].split()[2].strip().lower()
@@ -147,19 +153,38 @@ def get_forecst_string(forecast, date_object):
                 # US forecasts
                 weather_desc = entry['summary'].split('-')[1]
 
-            if date_object['weekday'] == 'today' and date_desc in today_words:
-                output = date_desc + \
-                    ", the weather is " + weather_desc + "."
-                break
+            # try to get requested result if still applicable
+            if not output['requested']:
+                # Treat forecasts for today special
+                if date_object['weekday'] == 'today' and date_desc in today_words:
+                    output['requested'] = date_desc + \
+                        ", the weather is " + weather_desc + "."
+                    continue
 
-            if date_object['weekday'] == date_desc:
-                output = date_object['date_keyword'] + \
-                    ", the weather will be " + weather_desc + "."
-                break
+                if date_object['weekday'] == date_desc:
+                    output['requested'] = date_object['date_keyword'] + \
+                        ", the weather will be " + weather_desc + "."
+                    continue
         except:
             continue
+    print(">>> forecast results: %s" % (output))
     return output
 
+
+def get_alternative_string(date_desc_list):
+
+
+
+    output_string = "If you are interested, I was able to find the forecast for: "
+
+    if len(date_desc_list) > 1:
+        for i in range((len(date_desc_list) - 1)):
+            output_string = "%s%s " % (output_string, date_desc_list[i])
+        output_string = "%s%s." % (output_string, date_desc_list[-1])
+    else:
+        output_string = output_string + date_desc_list[0]
+
+    return output_string
 
 def handle(text, mic, profile):
     """
@@ -187,64 +212,27 @@ def handle(text, mic, profile):
     # Find Date
     date_object = get_date_object_from_text(text, profile)
 
-    #tz = getTimezone(profile)
-
-    #service = DateService(tz=tz)
-    #date = service.extractDay(text)
-    #if not date:
-    #    date = datetime.datetime.now(tz=tz)
-    #weekday = service.__daysOfWeek__[date.weekday()]
-
-    #if date.weekday() == datetime.datetime.now(tz=tz).weekday():
-    #    date_keyword = "Today"
-    #elif date.weekday() == (
-    #        datetime.datetime.now(tz=tz).weekday() + 1) % 7:
-    #    date_keyword = "Tomorrow"
-    #else:
-    #    date_keyword = "On " + weekday
-
-    #output = None
-
-    # Added
     # create log output
     print('Weekday: ' +  date_object['weekday'])
     print("keyword: " + date_object['date_keyword'])
-    count = 0
-    # print("test 1")
-    # print("forecast: " + str(type(forecast)))
-    #for entry in forecast:
-    #    try:
-    #        date_desc = entry['title'].split()[0].strip().lower()
-    #        # Added
-    #        print(date_desc)
 
-    #        if date_desc == 'forecast':
-    #            # For global forecasts
-    #            date_desc = entry['title'].split()[2].strip().lower()
-    #            weather_desc = entry['summary']
-    #        elif date_desc == 'current':
-                # For first item of global forecasts
-    #            continue
-    #        else:
-                # US forecasts
-    #            weather_desc = entry['summary'].split('-')[1]
-    #        print(date_object['weekday'] + ' is equal to ' + date_desc + " :  " + str(date_object['weekday'] == date_desc))
-    #        if date_object['weekday'] == date_desc:
-    #            output = date_object['date_keyword'] + \
-    #                ", the weather will be " + weather_desc + "."
-    #            break
-    #    except:
-    #        continue
 
-    output = get_forecst_string(forecast, date_object)
+    output = get_forecst(forecast, date_object)
 
-    if output:
-        output = replaceAcronyms(output)
-        mic.say(output)
+    if output['requested']:
+        output_string = replaceAcronyms(output['requested'])
+        print(output_string)
+        mic.say(output_string)
     else:
-        mic.say(
-            "I'm sorry. I can't see that far ahead.")
+        if len(output['alternatives']) > 0:
+            alternative_string = get_alternative_string(output['alternatives'])
 
+            mic.say(
+                "I'm sorry. I can't see that far ahead.")
+            mic.say(alternative_string)
+        else:
+            mic.say("System error! I was unable to access " +
+                    "the Los Angeles Weather Station!")
 
 def isValid(text):
     """
