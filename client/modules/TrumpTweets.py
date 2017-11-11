@@ -4,6 +4,7 @@ import re
 import twitter
 import jasperpath
 import yaml
+import base64
 
 WORDS = ["TRUMP TWEETS"]
 
@@ -24,20 +25,20 @@ class twitter_credentials:
                     if 'consumer_key' in profile['twitter']:
                         if 'consumer_secret' in profile['twitter']:
                             config['consumer_key'] = \
-                                profile['twitter']['consumer_key']
+                                base64.b64decode(profile['twitter']['consumer_key'])
                             config['consumer_secret'] = \
                                 profile['twitter']['consumer_secret']
                     # Token & its secret are non-essential (though very common)
                     # entities in twitter authentication
                     if 'oauth_token' in profile['twitter']:
                         if 'token_secret' in profile['twitter']:
-                            config['oauth_token'] = \
-                                profile['twitter']['oauth_token']
-                            config['token_secret'] = \
-                                profile['twitter']['token_secret']
+                            config['access_token'] = \
+                                profile['twitter']['access_token']
+                            config['access_token_secret'] = \
+                                profile['twitter']['access_token_secret']
         print("key: %s, secret: %s" % (config['consumer_key'], config['consumer_secret']))
-        if 'oauth_token' in config:
-            print("token: %s, secret: %s" % (config['oauth_token'], config['token_secret']))
+        if 'access_token' in config:
+            print("token: %s, secret: %s" % (config['access_token'], config['access_token_secret']))
         return config
 
 
