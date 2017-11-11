@@ -2,6 +2,7 @@
 import logging
 from notifier import Notifier
 from brain import Brain
+import random
 
 
 class Conversation(object):
@@ -46,4 +47,10 @@ class Conversation(object):
             if input:
                 self.brain.query(input)
             else:
-                self.mic.say("Pardon?")
+                messages = ["You know, I can't help you if you mumble like that?"
+                            ,"Does not compute, how about we try this again?"]
+
+                message = random.choice(messages)
+
+                self.mic.say(message)
+                #self.mic.say("?")

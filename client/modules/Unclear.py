@@ -20,7 +20,7 @@ def handle(text, mic, profile):
 
     messages = ["I'm sorry, could you repeat that?",
                 "My apologies, could you try saying that again?",
-                "Say that again?", "My bad, I am a dumb robot."]
+                "Say that again?", "Does not compute, I am a dumb robot."]
 
     message = random.choice(messages)
 
