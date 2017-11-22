@@ -19,7 +19,6 @@ class Mic:
     def __init__(self, speaker, passive_stt_engine, active_stt_engine):
         """
         Initiates the pocketsphinx instance.
-
         Arguments:
         speaker -- handles platform-independent audio output
         passive_stt_engine -- performs STT while Jasper is in passive listen
@@ -97,7 +96,7 @@ class Mic:
         CHUNK = 1024
 
         # number of seconds to allow to establish threshold
-        THRESHOLD_TIME = 2
+        THRESHOLD_TIME = 1
 
         # number of seconds to listen before forcing restart
         LISTEN_TIME = 10
@@ -186,7 +185,6 @@ class Mic:
     def activeListen(self, THRESHOLD=None, LISTEN=True, MUSIC=False):
         """
             Records until a second of silence or times out after 12 seconds
-
             Returns the first matching string or None
         """
 
@@ -198,7 +196,6 @@ class Mic:
                                  MUSIC=False):
         """
             Records until a second of silence or times out after 12 seconds
-
             Returns a list of the matching options or None
         """
 
@@ -211,7 +208,6 @@ class Mic:
             THRESHOLD = self.fetchThreshold()
 
         self.speaker.play(jasperpath.data('audio', 'beep_hi.wav'))
-        self.speaker.play(jasperpath.data('audio', 'beep hi.wav'))
 
         # prepare recording stream
         stream = self._audio.open(format=pyaudio.paInt16,
