@@ -27,8 +27,10 @@ class Conversation(object):
             for notif in notifications:
                 self._logger.info("Received notification: '%s'", str(notif))
 
+
             self._logger.debug("Started listening for keyword '%s'",
                                self.persona)
+
             threshold, transcribed = self.mic.passiveListen(self.persona)
             self._logger.debug("Stopped listening for keyword '%s'",
                                self.persona)
