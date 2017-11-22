@@ -97,7 +97,7 @@ class Mic:
         CHUNK = 1024
 
         # number of seconds to allow to establish threshold
-        THRESHOLD_TIME = 1
+        THRESHOLD_TIME = 2
 
         # number of seconds to listen before forcing restart
         LISTEN_TIME = 10
@@ -211,6 +211,7 @@ class Mic:
             THRESHOLD = self.fetchThreshold()
 
         self.speaker.play(jasperpath.data('audio', 'beep_hi.wav'))
+        self.speaker.play(jasperpath.data('audio', 'beep hi.wav'))
 
         # prepare recording stream
         stream = self._audio.open(format=pyaudio.paInt16,
