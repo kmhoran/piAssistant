@@ -22,23 +22,23 @@ class WitAiEngine(object):
     Generic parent class for all STT engines
     """
 
-    def __init__(self, access_token):
+    def __init__(self):
+        self.config = self.get_config() 
         self._logger = logging.getLogger(__name__)
-        self.token = access_token
+        self.token = self.config['access_token']
+        self.set_headers()
 
-    # __metaclass__ = ABCMeta
-    VOCABULARY_TYPE = None
 
-    @property
-    def token(self):
-        return self._token
 
-    @token.setter
-    def token(self, value):
-        self._token = value
+    def set_headers(self):
+        
         self._headers = {'Authorization': 'Bearer %s' % self.token,
                          'accept': 'application/json',
                          'Content-Type': 'audio/wav'}
+
+    @property
+    def headers(self):
+        return self._headers
 
     def get_config(self):
         # FIXME: Replace this as soon as we have a config module
@@ -52,34 +52,65 @@ class WitAiEngine(object):
                     if 'access_token' in profile['witai-stt']:
                         config['access_token'] = \
                             profile['witai-stt']['access_token']
+        print(config)
         return config
 
 
-    def get_instance(self, vocabulary_name, phrases):
-        config = self.get_config()
-        if self.VOCABULARY_TYPE:
-            vocabulary = self.VOCABULARY_TYPE(vocabulary_name,
-                                             path=jasperpath.config(
-                                                 'vocabularies'))
-            if not vocabulary.matches_phrases(phrases):
-                vocabulary.compile(phrases)
-            config['vocabulary'] = vocabulary
-        instance = self(**config)
-        return instance
-
+    def get_instance(self):
+        #config = self.get_config()
+        #instance = self(**config)
+        #return instance
+        return self
 
     def get_passive_instance(self):
-        phrases = vocabcompiler.get_keyword_phrases()
-        return self.get_instance('keyword', phrases)
+        return self.get_active_instance()
 
     def get_active_instance(self):
-        phrases = vocabcompiler.get_all_phrases()
-        return self.get_instance('default', phrases)
+        return self.get_instance()
 
     def is_available(cls):
         return diagnose.check_network_connection()
 
+    def is_conversation_initiated(self, fp):
+        print ("wit_stt >> determining if conversation is initiated")
+        transcription = self.transcribe(fp)
+        print("wit_stt >> transcribed: {0}".format(transcription))
+
+        if transcription == []:
+            return False
+
+        if not transcription.get("outcomes"):
+            return False
+        outcomes = transcription.get("outcomes")
+
+        if not outcomes[0].get("entities"):
+            print("wit_stt >>  no entities")
+            return False
+        entities = outcomes[0].get("entities")
+        print("wit_stt >> entities: {0}".format(entities))
+
+
+        if not entities.get("courtesy"):
+            print("wit_stt >> no courtesy")
+            return False
+        courtesy = entities.get("courtesy")
+        print("wit_stt >>  courtesy: {0}".format(courtesy[0]))
+        if not courtesy[0].get("value"):
+            return False
+        value = courtesy[0].get("value")
+        print("wit_stt >> value = " + value)
+        if value == "Greeting":
+            print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~")
+            print("CONVERSATION INITIATED!")
+            print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~")
+
+        return value == "Greeting"
+
+
+
     def transcribe(self, fp):
+        # add   
+        print("wit_stt>> Transcribing through wit-ai")
         data = fp.read()
         r = requests.post('https://api.wit.ai/speech?v=20150101',
                           data=data,
@@ -111,7 +142,7 @@ class WitAiEngine(object):
         else:
             transcribed = ''
             if response:
-                transcribed.append(response)
+                transcribed =response
             self._logger.info('Wit.ai response : %r', transcribed)
             return transcribed
 
@@ -138,7 +169,7 @@ class WitAiSTT(AbstractSTTEngine):
         self.token = access_token
 
     @classmethod
-    def get_config(cls):
+    def get_config(self):
         # FIXME: Replace this as soon as we have a config module
         config = {}
         # Try to get wit.ai Auth token from config
@@ -237,4 +268,4 @@ def get_engine_by_slug(slug=None):
 """
 
 def get_engine():
-    return WitAiEngine
+    return WitAiEngine()

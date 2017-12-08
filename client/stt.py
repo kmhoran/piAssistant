@@ -597,7 +597,8 @@ class WitAiSTT(AbstractSTTEngine):
 
         try:
             r.raise_for_status()
-            text = r.json()['_text']
+            #text = r.json()['_text']
+            text = r.json()
         except requests.exceptions.HTTPError:
             self._logger.critical('Request failed with response: %r',
                                   r.text,
@@ -615,9 +616,11 @@ class WitAiSTT(AbstractSTTEngine):
                                   exc_info=True)
             return []
         else:
-            transcribed = []
+            transcribed = ""
             if text:
-                transcribed.append(text.upper())
+                print(transcribed)
+                #transcribed.append(text.upper())
+                transcribed = text
             self._logger.info('Transcribed: %r', transcribed)
             return transcribed
 

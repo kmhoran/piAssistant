@@ -64,16 +64,24 @@ class Brain(object):
         Arguments:
         text -- user input, typically speech, to be parsed by a module
         """
+        print("brain >> Modules: {0}".format(self.modules))
         for module in self.modules:
             for text in texts:
+
+                print("brain >> text: {0}".format(text)) 
+
                 if module.isValid(text):
                     self._logger.debug("'%s' is a valid phrase for module " +
                                        "'%s'", text, module.__name__)
                     try:
                         module.handle(text, self.mic, self.profile)
+
                     except Exception:
                         self._logger.error('Failed to execute module',
                                            exc_info=True)
+
+                        print("brain >> failed to execute module: {0}".format(module))
+
                         self.mic.say("System error! I could not complete the  " +
                                      "requested operation. Please try again later.")
                     else:

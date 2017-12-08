@@ -10,7 +10,7 @@ import yaml
 import argparse
 
 from client import tts
-from client import stt
+from client import wit_stt as stt
 from client import jasperpath
 from client import diagnose
 from client.conversation import Conversation
@@ -88,11 +88,12 @@ class Jasper(object):
             stt_engine_slug = 'sphinx'
             logger.warning("stt_engine not specified in profile, defaulting " +
                            "to '%s'", stt_engine_slug)
-        stt_engine_class = stt.get_engine_by_slug(stt_engine_slug)
-
+       # stt_engine_class = stt.get_engine_by_slug(stt_engine_slug)
+        stt_engine_class = stt.get_engine()
         try:
             slug = self.config['stt_passive_engine']
-            stt_passive_engine_class = stt.get_engine_by_slug(slug)
+            #stt_passive_engine_class = stt.get_engine_by_slug(slug)
+            stt_passive_engine_class = stt.get_engine()
         except KeyError:
             stt_passive_engine_class = stt_engine_class
 
@@ -110,6 +111,8 @@ class Jasper(object):
                        stt_engine_class.get_active_instance())
 
     def run(self):
+
+        print("jasper is running")
         if 'first_name' in self.config:
             salutation = ("How can I be of service, %s?"
                           % self.config["first_name"])

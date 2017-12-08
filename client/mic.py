@@ -91,17 +91,23 @@ class Mic:
         needs to be restarted.
         """
 
-        THRESHOLD_MULTIPLIER = 1.8
+        THRESHOLD_MULTIPLIER = 3
+        THRESHOLD_BOOST = 150
         RATE = 16000
         CHUNK = 1024
 
         # number of seconds to allow to establish threshold
         THRESHOLD_TIME = 1
+        # add   
+        print("mic >> threshold : %d" % THRESHOLD_TIME)
 
         # number of seconds to listen before forcing restart
         LISTEN_TIME = 10
-
+        # add   
+        print("mic >> ListenTime: %d" % LISTEN_TIME)
         # prepare recording stream
+        # add   
+        print("mic >> adding stream")
         stream = self._audio.open(format=pyaudio.paInt16,
                                   channels=1,
                                   rate=RATE,
@@ -116,17 +122,25 @@ class Mic:
 
         # calculate the long run average, and thereby the proper threshold
         for i in range(0, RATE / CHUNK * THRESHOLD_TIME):
-
+            print(". .")
             data = stream.read(CHUNK)
             frames.append(data)
+
+            print(" .")
 
             # save this data point as a score
             lastN.pop(0)
             lastN.append(self.getScore(data))
             average = sum(lastN) / len(lastN)
 
+        # add   
+        print("mic >> calculate proper threshold")
         # this will be the benchmark to cause a disturbance over!
-        THRESHOLD = average * THRESHOLD_MULTIPLIER
+        print("mic >> Average Quiet Volume: {0}".format(average))
+        THRESHOLD = average * THRESHOLD_MULTIPLIER +THRESHOLD_BOOST
+
+        #add   
+        print("mic >> threshold: {0}".format(THRESHOLD))
 
         # save some memory for sound data
         frames = []
@@ -135,7 +149,8 @@ class Mic:
         didDetect = False
 
         # start passively listening for disturbance above threshold
-        for i in range(0, RATE / CHUNK * LISTEN_TIME):
+        LISTEN_FACTOR = RATE / CHUNK * LISTEN_TIME
+        for i in range(0, LISTEN_FACTOR):
 
             data = stream.read(CHUNK)
             frames.append(data)
@@ -143,28 +158,31 @@ class Mic:
 
             if score > THRESHOLD:
                 didDetect = True
+                # add   
+                print("mic >> disturbance detected : {0} / {1}".format(score, THRESHOLD))
                 break
 
         # no use continuing if no flag raised
         if not didDetect:
-            print "No disturbance detected"
+            print "(mic) No disturbance detected"
             stream.stop_stream()
             stream.close()
-            return (None, None)
+            return (None, False)
 
         # cutoff any recording before this disturbance was detected
         frames = frames[-20:]
 
         # otherwise, let's keep recording for few seconds and save the file
         DELAY_MULTIPLIER = 1
-        for i in range(0, RATE / CHUNK * DELAY_MULTIPLIER):
-
+        DELAY_FACTOR = RATE / CHUNK * DELAY_MULTIPLIER
+        for i in range(0, DELAY_FACTOR):
             data = stream.read(CHUNK)
             frames.append(data)
 
         # save the audio data
         stream.stop_stream()
         stream.close()
+
 
         with tempfile.NamedTemporaryFile(mode='w+b') as f:
             wav_fp = wave.open(f, 'wb')
@@ -175,12 +193,16 @@ class Mic:
             wav_fp.close()
             f.seek(0)
             # check if PERSONA was said
-            transcribed = self.passive_stt_engine.transcribe(f)
+            #transcribed = self.passive_stt_engine.transcribe(f)
+            # add   
+            is_conversation_desired = self.passive_stt_engine.is_conversation_initiated(f)
+        if is_conversation_desired:
+            print("mic >> initiation detected")
+            return (THRESHOLD, True)
 
-        if any(PERSONA in phrase for phrase in transcribed):
-            return (THRESHOLD, PERSONA)
-
-        return (False, transcribed)
+        # add   
+        print("mic >> No Persona name found")
+        return (THRESHOLD, False)
 
     def activeListen(self, THRESHOLD=None, LISTEN=True, MUSIC=False):
         """

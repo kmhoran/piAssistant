@@ -3,7 +3,7 @@ import logging
 from notifier import Notifier
 from brain import Brain
 import random
-
+import sys
 
 class Conversation(object):
 
@@ -31,23 +31,38 @@ class Conversation(object):
             self._logger.debug("Started listening for keyword '%s'",
                                self.persona)
 
-            threshold, transcribed = self.mic.passiveListen(self.persona)
+            print("conversation >> start listening for keyword %s" % self.persona)
+
+            threshold, is_conversation_desired = self.mic.passiveListen(self.persona)
             self._logger.debug("Stopped listening for keyword '%s'",
                                self.persona)
 
-            if not transcribed or not threshold:
+
+            print("conversation >> stopped listening for keyword %s" % self.persona)
+
+            if not is_conversation_desired:
                 self._logger.info("Nothing has been said or transcribed.")
+                print(">> Nothing has been said or transcribed.")
                 continue
             self._logger.info("Keyword '%s' has been said!", self.persona)
 
+            print("conversation >> Keyword %s has been said!" % self.persona)
+
             self._logger.debug("Started to listen actively with threshold: %r",
                                threshold)
+
+            print("conversation >> Started to listen actively with threshold: %r" % threshold)
+
             input = self.mic.activeListenToAllOptions(threshold)
             self._logger.debug("Stopped to listen actively with threshold: %r",
                                threshold)
 
+            print("conversation >> Stopped listening")
+
             if input:
-                self.brain.query(input)
+                print("conversation >> recieved input: " + str(input))
+                print("conversation >> Sending '{0}' to brain".format(input.get("_text")))
+                self.brain.query(input.get("_text"))
             else:
                 messages = ["You know, I can't help you if you mumble like that."
                             ,"Does not compute, how about we try this again."]
